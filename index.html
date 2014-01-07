@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+<script src="http://code.highcharts.com/highcharts.js"></script>
+
+<script type="text/javascript">
+var temp_k, temp_c, temp_f;
+var series;
+var update_interval = 10;
+
+$(document).ready(function() {
+	Highcharts.setOptions({
+		global: {
+			useUTC: false
+		}
+	});
+
+	$('#graph').highcharts({
+		chart: {
+			type: 'spline',
+			animation: Highcharts.svg,
+			marginRight: 10,
+			events: {
+				load: function() {
+					series_dhtTempF = this.series[0];
+					series_dhtHumidity = this.series[1];
+					series_thermTempF = this.series[2];
+					series_oneTempF = this.series[3];
+					series_photoCell = this.series[4];
+
+					setInterval(function() {
+						// DHT22 Temperature
+						$.ajax({
+							type: 'POST',
+							url: 'proxy.php/devices/YOUR_DEVICE_ID_HERE/dhtTempF',
+							success: function(resp) {
+								var val = parseFloat(resp.return_value/100);
+
+								series_dhtTempF.addPoint([(new Date()).getTime(), val], true, true);
+							},
+							error: function() {
+								series_dhtTempF.addPoint([(new Date()).getTime(), null], true, true);
+							}
+						});
+
+						// DHT22 Humidity
+						$.ajax({
+							type: 'POST',
+							url: 'proxy.php/devices/YOUR_DEVICE_ID_HERE/dhtHumidity',
+							success: function(resp) {
+								var val = parseFloat(resp.return_value/100);
+
+								series_dhtHumidity.addPoint([(new Date()).getTime(), val], true, true);
+							},
+							error: function() {
+								series_dhtHumidity.addPoint([(new Date()).getTime(), null], true, true);
+							}
+						});
+
+						// Thermistor Temperature
+						$.ajax({
+							type: 'POST',
+							url: 'proxy.php/devices/YOUR_DEVICE_ID_HERE/thermTempF',
+							success: function(resp) {
+								var val = parseFloat(resp.return_value/100);
+
+								series_thermTempF.addPoint([(new Date()).getTime(), val], true, true);
+							},
+							error: function() {
+								series_thermTempF.addPoint([(new Date()).getTime(), null], true, true);
+							}
+						});
+
+						// DS18B20 Temperature
+						$.ajax({
+							type: 'POST',
+							url: 'proxy.php/devices/YOUR_DEVICE_ID_HERE/oneTempF',
+							success: function(resp) {
+								var val = parseFloat(resp.return_value/100);
+
+								series_oneTempF.addPoint([(new Date()).getTime(), val], true, true);
+							},
+							error: function() {
+								series_oneTempF.addPoint([(new Date()).getTime(), null], true, true);
+							}
+						});
+
+						// Photoresistor
+						$.ajax({
+							type: 'GET',
+							url: 'proxy.php/devices/YOUR_DEVICE_ID_HERE/photoCell',
+							success: function(resp) {
+								var val = parseFloat(resp.return_value/100);
+
+								series_photoCell.addPoint([(new Date()).getTime(), val], true, true);
+							},
+							error: function() {
+								series_photoCell.addPoint([(new Date()).getTime(), null], true, true);
+							}
+						});
+					}, update_interval*1000);
+				}
+			}
+		},
+		title: {
+			text: 'Spark Core Temperature Sensors'
+		},
+		subtitle: {
+			text: 'Updated every '+update_interval+' seconds'
+		},
+		xAxis: {
+			type: 'datetime',
+			tickPixelInterval: 150
+		},
+		yAxis: {
+			//title: {
+			//	text: 'Temperature (F)'
+			//},
+			plotLines: [{
+				value: 0,
+				width: 1,
+				color: '#808080'
+			}]
+		},
+		legend: {
+			enabled: true
+		},
+		series: [{
+			name: 'DHT22 Temperature',
+			//color: '#FF0000',
+			data: (function() {
+				var data = [], time = (new Date()).getTime(), i;
+
+				for(i=-19; i<=0; i++) {
+					data.push({
+						x: time + i * 1000,
+						y: null
+					});
+				}
+
+				return data;
+			})()
+		}, {
+			name: 'DHT22 Humidity',
+			color: '#0000FF',
+			data: (function() {
+				var data = [], time = (new Date()).getTime(), i;
+
+				for(i=-19; i<=0; i++) {
+					data.push({
+						x: time + i * 1000,
+						y: null
+					});
+				}
+
+				return data;
+			})()
+		}, {
+			name: 'Thermistor Temperature',
+			//color: '#0000FF',
+			data: (function() {
+				var data = [], time = (new Date()).getTime(), i;
+
+				for(i=-19; i<=0; i++) {
+					data.push({
+						x: time + i * 1000,
+						y: null
+					});
+				}
+
+				return data;
+			})()
+		}, {
+			name: 'DS18B20 Temperature',
+			//color: '#0000FF',
+			data: (function() {
+				var data = [], time = (new Date()).getTime(), i;
+
+				for(i=-19; i<=0; i++) {
+					data.push({
+						x: time + i * 1000,
+						y: null
+					});
+				}
+
+				return data;
+			})()
+		}, {
+			name: 'Photoresistor',
+			//color: '#0000FF',
+			data: (function() {
+				var data = [], time = (new Date()).getTime(), i;
+
+				for(i=-19; i<=0; i++) {
+					data.push({
+						x: time + i * 1000,
+						y: null
+					});
+				}
+
+				return data;
+			})()
+		}]
+	});
+});
+</script>
+</head>
+<body>
+
+<div id="graph" style="width:640px; height:480px; margin: 0 auto;"></div>
+
+</body>
+</html>
